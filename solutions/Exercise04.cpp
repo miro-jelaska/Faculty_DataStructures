@@ -19,7 +19,7 @@ typedef Monomial* MonomialPtr;
 typedef struct PolynomialHead
 {
     int count;
-    
+
     MonomialPtr next;
 };
 typedef PolynomialHead* PolynomialHeadPtr;
@@ -29,7 +29,7 @@ PolynomialHeadPtr CreateZeroPolynomial()
     PolynomialHeadPtr newZeroPolynomial = (PolynomialHeadPtr)malloc(sizeof(PolynomialHead));
 
     newZeroPolynomial->count = 0;
-    newZeroPolynomial->next  = NULL;
+    newZeroPolynomial->next = NULL;
 
     return newZeroPolynomial;
 }
@@ -42,8 +42,8 @@ MonomialPtr CreateMonomial
     MonomialPtr newMonomial = (MonomialPtr)malloc(sizeof(Monomial));
 
     newMonomial->coefficient = coefficient;
-    newMonomial->power       = power;
-    newMonomial->next        = NULL;
+    newMonomial->power = power;
+    newMonomial->next = NULL;
 
     return newMonomial;
 }
@@ -103,12 +103,12 @@ void AddMonomialToPolynomial(PolynomialHeadPtr head, MonomialPtr monomial)
         for (; !IsLastElement(current) && IsLargerPowerThan(current->next, monomial); SetToNext(&current));
 
         monomial->next = current->next;
-        current ->next = monomial;
+        current->next = monomial;
     }
     else
     {
         monomial->next = head->next;
-        head    ->next = monomial;
+        head->next = monomial;
     }
 
     head->count = head->count + 1;
@@ -132,7 +132,7 @@ void SumPolynomialWithMonomial(PolynomialHeadPtr head, MonomialPtr monomial)
 MonomialPtr MultiplyMonomialWithMonomial(MonomialPtr first, MonomialPtr second)
 {
     int coefficient = first->coefficient * second->coefficient;
-    int power       = first->power       * second->power;
+    int power       = first->power       + second->power;
 
     return CreateMonomial(coefficient, power);
 }
@@ -150,7 +150,7 @@ PolynomialHeadPtr Sum(const PolynomialHeadPtr firstHead, const PolynomialHeadPtr
             SumPolynomialWithMonomial(newPolynomialHead, CloneMonomial_withoutNext(firstMonomial));
             SetToNext(&firstMonomial);
         }
-        else 
+        else
         {
             SumPolynomialWithMonomial(newPolynomialHead, CloneMonomial_withoutNext(secondMonomial));
             SetToNext(&secondMonomial);
@@ -162,7 +162,7 @@ PolynomialHeadPtr Sum(const PolynomialHeadPtr firstHead, const PolynomialHeadPtr
 PolynomialHeadPtr Multiply(const PolynomialHeadPtr firstHead, const PolynomialHeadPtr secondHead)
 {
     PolynomialHeadPtr newPolynomialHead = CreateZeroPolynomial();
-    
+
     for (MonomialPtr current_first = firstHead->next; !IsOutOfRange(current_first); SetToNext(&current_first))
     {
         for (MonomialPtr current_second = secondHead->next; !IsOutOfRange(current_second); SetToNext(&current_second))
@@ -174,19 +174,79 @@ PolynomialHeadPtr Multiply(const PolynomialHeadPtr firstHead, const PolynomialHe
     return newPolynomialHead;
 }
 
+
+PolynomialHeadPtr ReadPolynomialFromFile(char* relativePath)
+{
+    FILE* file = fopen(relativePath, "r");
+
+    if (file != NULL)
+    {
+        PolynomialHeadPtr newPolynomialHead = CreateZeroPolynomial();
+
+        while (!feof(file))
+        {
+            int coefficient;
+            int power;
+
+            fscanf(file, "%d %d", &coefficient, &power);
+
+            AddMonomialToPolynomial(newPolynomialHead, CreateMonomial(coefficient, power));
+        }
+
+        fclose(file);
+
+        return newPolynomialHead;
+    }
+    else
+    {
+        printf("Error occurred while opening file");
+        return NULL;
+    }
+}
+
+
+void PrintPolynomial(PolynomialHeadPtr head)
+{
+    if (!IsEmptyOrNull(head))
+    {
+        printf("\n");
+        for (MonomialPtr current = head->next; !IsOutOfRange(current); SetToNext(&current))
+        {
+            printf("%dx\^%d  ", current->coefficient, current->power);
+        }
+    }
+    else
+    {
+        printf("\n Polynomial empty or null");
+    }
+}
+
 int main()
 {
-    PolynomialHeadPtr polynomial_1 = CreateZeroPolynomial();
-    AddMonomialToPolynomial(polynomial_1, CreateMonomial(10, 4));
-    AddMonomialToPolynomial(polynomial_1, CreateMonomial(6,  2));
-    AddMonomialToPolynomial(polynomial_1, CreateMonomial(2,  1));
-    AddMonomialToPolynomial(polynomial_1, CreateMonomial(7,  6));
+    PolynomialHeadPtr polynomial_1 = ReadPolynomialFromFile("poly1.txt");
+    PrintPolynomial(polynomial_1);
+    PolynomialHeadPtr polynomial_2 = ReadPolynomialFromFile("poly2.txt");
+    PrintPolynomial(polynomial_2);
 
-    PolynomialHeadPtr polynomial_2 = CreateZeroPolynomial();
-    AddMonomialToPolynomial(polynomial_2, CreateMonomial(9,  3));
-    AddMonomialToPolynomial(polynomial_2, CreateMonomial(1,  1));
-    AddMonomialToPolynomial(polynomial_2, CreateMonomial(-5, 9));
+    PolynomialHeadPtr sum = Sum(polynomial_1, polynomial_2);
+    printf("\nSum");
+    PrintPolynomial(sum);
 
-    PolynomialHeadPtr polynomial = Sum(polynomial_1, polynomial_2);
-    PolynomialHeadPtr polyMulti = Multiply(polynomial_1, polynomial_2);
+    PolynomialHeadPtr multi = Multiply(polynomial_1, polynomial_2);
+    printf("\nMulti");
+    PrintPolynomial(multi);
+
+    //PolynomialHeadPtr polynomial_1 = CreateZeroPolynomial();
+    //AddMonomialToPolynomial(polynomial_1, CreateMonomial(10, 4));
+    //AddMonomialToPolynomial(polynomial_1, CreateMonomial(6,  2));
+    //AddMonomialToPolynomial(polynomial_1, CreateMonomial(2,  1));
+    //AddMonomialToPolynomial(polynomial_1, CreateMonomial(7,  6));
+
+    //PolynomialHeadPtr polynomial_2 = CreateZeroPolynomial();
+    //AddMonomialToPolynomial(polynomial_2, CreateMonomial(9,  3));
+    //AddMonomialToPolynomial(polynomial_2, CreateMonomial(1,  1));
+    //AddMonomialToPolynomial(polynomial_2, CreateMonomial(-5, 9));
+
+    //PolynomialHeadPtr polynomial = Sum(polynomial_1, polynomial_2);
+    //PolynomialHeadPtr polyMulti = Multiply(polynomial_1, polynomial_2);
 }
