@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 
 //**************************************//
 //               Stack                  //
@@ -218,9 +219,19 @@ int Dequeue(QueuePtr queue)
     }
 }
 
+//**************************************//
+//         Other functionality          //
+//**************************************//
+void PushRandom_range10to100(StackPtr stack)
+{
+    int value = rand() % 90 + 10;
+    Push(stack, value);
+}
 
 int main()
 {
+    srand(time(NULL));
+
     printf("\n------ STACK ------\n");
     StackPtr stack = CreateEmptyStack();
     Push(stack, 25);
@@ -230,7 +241,7 @@ int main()
     printf("%d\n", Peek(stack));
     printf("%d\n", Pop(stack));
     printf("%d\n", Pop(stack));
-    Push(stack, 4);
+    PushRandom_range10to100(stack);
     printf("%d\n", Pop(stack));
     printf("%d\n", Pop(stack));
 
